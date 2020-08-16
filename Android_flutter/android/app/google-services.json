@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "447275295549",
+    "firebase_url": "https://assistant-iot-c5302.firebaseio.com",
+    "project_id": "assistant-iot-c5302",
+    "storage_bucket": "assistant-iot-c5302.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:447275295549:android:c95d845acd1178554b9b54",
+        "android_client_info": {
+          "package_name": "com.smallker.assistant_iot"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "447275295549-16vupqc9p6nknknse337ck4lotd1ejpk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCthomWqZVp3y9bBfqbU-yerIY1pO_9wlM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "447275295549-16vupqc9p6nknknse337ck4lotd1ejpk.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
