@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:assistant_iot/StatusController.dart';
 import 'package:assistant_iot/services/View.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:speech_to_text/speech_recognition_error.dart';
@@ -16,7 +18,7 @@ void main() => runApp(Start());
 class Start extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'Voice Recognition',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -26,9 +28,6 @@ class Start extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: App(),
-//      routes: {
-//        DiscoveryPage().route : (BuildContext context) => DiscoveryPage(),
-//      },
     );
   }
 }
@@ -51,7 +50,7 @@ class _AppState extends State<App> with TickerProviderStateMixin {
   String deviceAddress;
   bool status = false;
   final SpeechToText speech = SpeechToText();
-
+  final StatusController _statusController = Get.put(StatusController());
   Future<void> initSpeech() async {
     await speech.initialize(onError: errorListener, onStatus: statusListener);
     await speech.locales();
@@ -66,7 +65,7 @@ class _AppState extends State<App> with TickerProviderStateMixin {
     speech.listen(
         onResult: resultListener,
         listenFor: Duration(seconds: 5),
-        localeId: 'in_ID',
+        localeId: 'en_US',
         cancelOnError: true,
         partialResults: true,
         onDevice: true,
@@ -93,17 +92,20 @@ class _AppState extends State<App> with TickerProviderStateMixin {
 
   Future<AudioPlayer> penuh() async {
     AudioCache cache = new AudioCache();
-    return await cache.play("penuh.mp3");
+    Get.find<StatusController>().updateStatus(1);
+    return await cache.play("full.mp3");
   }
 
   Future<AudioPlayer> kosong() async {
     AudioCache cache = new AudioCache();
-    return await cache.play("kosong.mp3");
+    Get.find<StatusController>().updateStatus(0);
+    return await cache.play("empty.mp3");
   }
 
   Future<AudioPlayer> isi() async {
     AudioCache cache = new AudioCache();
-    return await cache.play("isi.mp3");
+    Get.find<StatusController>().updateStatus(2);
+    return await cache.play("feeding.mp3");
   }
 
   @override
@@ -116,7 +118,7 @@ class _AppState extends State<App> with TickerProviderStateMixin {
       if (lastWords != "" &&
           sent == false &&
           lastStatus == 'notListening' &&
-          lastWords.toLowerCase() == "cek kondisi tempat makan") {
+          lastWords.toLowerCase() == "check the food") {
         print('mengecek database');
         var status =
             FirebaseDatabase.instance.reference().child('/status').once();
@@ -124,16 +126,14 @@ class _AppState extends State<App> with TickerProviderStateMixin {
           print(snapshot);
           if (snapshot.value)
             penuh();
-          // print('penuh');
           else
             kosong();
-          // print('kosong');
         });
         sent = true;
       } else if (lastWords != "" &&
           sent == false &&
           lastStatus == 'notListening' &&
-          lastWords.toLowerCase() == "isi tempat makan") {
+          lastWords.toLowerCase() == "feed my pet") {
         await FirebaseDatabase.instance
             .reference()
             .child('/')
@@ -170,21 +170,25 @@ class _AppState extends State<App> with TickerProviderStateMixin {
                             ..reset()),
                     ),
             ),
-            Flexible(
-                flex: 4,
-                child: lastStatus == 'listening'
-                    ? Text(
-                        'Perintah : $lastWords\n',
-                        style: TextStyle(
-                            color: Colors.deepPurple,
-                            fontSize: View.blockX * 5),
-                      )
-                    : Text(
-                        'Klik tombol dibawah\n',
-                        style: TextStyle(
-                            color: Colors.deepPurple,
-                            fontSize: View.blockX * 5),
-                      )),
+            GetBuilder<StatusController>(
+              builder: (_) {
+                return Flexible(
+                    flex: 4,
+                    child: lastStatus == 'listening'
+                        ? Text(
+                            'Command : $lastWords',
+                            style: TextStyle(
+                                color: Colors.deepPurple,
+                                fontSize: View.blockX * 5),
+                          )
+                        : Text(
+                            '${_.status}\n',
+                            style: TextStyle(
+                                color: Colors.deepPurple,
+                                fontSize: View.blockX * 5),
+                          ));
+              },
+            ),
             Flexible(
               flex: 1,
               child: RaisedButton(
@@ -193,13 +197,14 @@ class _AppState extends State<App> with TickerProviderStateMixin {
                     borderRadius: BorderRadius.circular(10)),
                 color: Colors.deepPurple,
                 child: Text(
-                  'Mulai',
+                  'Start',
                   style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                       fontSize: View.blockX * 7),
                 ),
                 onPressed: () {
+                  Get.find<StatusController>().updateStatus(3);
                   startListening();
                 },
               ),
